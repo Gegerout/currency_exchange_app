@@ -3,17 +3,14 @@ package com.example.currencyapp.data.remote.dto
 import com.example.currencyapp.domain.model.Currency
 
 data class CurrencyDto(
-    val CAD: Double,
-    val EUR: Double,
-    val GBP: Double,
-    val USD: Double
+    val `data`: Data
 )
 
-fun CurrencyDto.toCurrency(): Currency {
+fun CurrencyDto.toCurrency() : Currency {
     return Currency(
-        CAD = CAD,
-        EUR = EUR,
-        GBP = GBP,
-        USD = USD
+        EUR = data.EUR,
+        USD = data.USD,
+        GBP = data.GBP,
+        CAD = data.CAD
     )
 }

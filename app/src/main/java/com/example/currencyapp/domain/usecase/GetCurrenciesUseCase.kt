@@ -12,10 +12,18 @@ import java.io.IOException
 import javax.inject.Inject
 
 class GetCurrenciesUseCase @Inject constructor(private val repository: CurrencyRepository) {
-    operator fun invoke(apiKey: String, baseCurrency: String, currencies: String): Flow<Resource<Currency>> = flow {
+    operator fun invoke(
+        apiKey: String,
+        baseCurrency: String,
+        currencies: String
+    ): Flow<Resource<Currency>> = flow {
         try {
             emit(Resource.Loading<Currency>())
-            val currency = repository.getCurrencies(apiKey, currencies, baseCurrency).toCurrency()
+            val currency = repository.getCurrencies(
+                apiKey = apiKey,
+                currencies = currencies,
+                baseCurrency = baseCurrency
+            ).toCurrency()
             emit(Resource.Success<Currency>(currency))
         } catch (e: HttpException) {
             emit(Resource.Error<Currency>(e.localizedMessage ?: BASE_ERROR_MESSAGE))

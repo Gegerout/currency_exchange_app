@@ -32,7 +32,11 @@ class CurrencyExchangeViewModel @Inject constructor(
     }
 
     fun getCurrencies(baseCurrency: String) {
-        getCoinsUseCase(API_KEY, CURRENCIES, baseCurrency).onEach { result ->
+        getCoinsUseCase(
+            apiKey = API_KEY,
+            currencies = CURRENCIES,
+            baseCurrency = baseCurrency
+        ).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     _state.value = CurrencyExchangeState(
