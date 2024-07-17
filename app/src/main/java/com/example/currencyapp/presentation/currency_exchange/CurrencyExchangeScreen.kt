@@ -1,6 +1,7 @@
 package com.example.currencyapp.presentation.currency_exchange
 
 import CurrencySelector
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun CurrencyExchangeScreen(
     navController: NavController,
@@ -24,7 +26,6 @@ fun CurrencyExchangeScreen(
     val currencies = listOf("USD", "EUR", "GBP", "CAD")
 
     Column(modifier = Modifier.padding(16.dp)) {
-        // Amount input field
         OutlinedTextField(
             value = amount,
             onValueChange = { amount = it },
@@ -33,29 +34,24 @@ fun CurrencyExchangeScreen(
             modifier = Modifier.padding(vertical = 8.dp)
         )
 
-        // Source currency selector
         CurrencySelector(
             currencies = currencies,
             selectedCurrency = sourceCurrency,
             onCurrencySelected = { selected ->
                 sourceCurrency = selected
-                // Reset target currency if it matches the newly selected source currency
                 if (targetCurrency == selected) {
                     targetCurrency = currencies.first { it != selected }
                 }
             }
         )
 
-        // Filtered target currencies
         val filteredTargetCurrencies = currencies.filter { it != sourceCurrency }
 
-        // Target currency selector
         CurrencySelector(
             currencies = filteredTargetCurrencies,
             selectedCurrency = targetCurrency,
             onCurrencySelected = { selected ->
                 targetCurrency = selected
-                // Reset source currency if it matches the newly selected target currency
                 if (sourceCurrency == selected) {
                     sourceCurrency = currencies.first { it != selected }
                 }
@@ -64,7 +60,6 @@ fun CurrencyExchangeScreen(
 
         val currentState by remember { viewModel.state }
 
-        // Convert button
         Button(
             onClick = {
                 viewModel.convertCurrency(
@@ -72,11 +67,28 @@ fun CurrencyExchangeScreen(
                     sourceCurrency,
                     targetCurrency
                 )
-                navController.navigate("convertedResult")
             },
             modifier = Modifier.padding(vertical = 8.dp)
         ) {
             Text(text = "Convert")
+        }
+
+        var conversionComplete by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            snapshotFlow { viewModel.state.value.convertedAmount }.collect { convertedAmount ->
+                if (convertedAmount != null) {
+                    conversionComplete = true
+                }
+            }
+        }
+
+        if (conversionComplete) {
+            LaunchedEffect(Unit) {
+                navController.popBackStack("currencyExchange", true)
+                navController.navigate("convertedResult/${viewModel.state.value.convertedAmount}")
+                conversionComplete = false
+            }
         }
 
         if (currentState.isLoading) {

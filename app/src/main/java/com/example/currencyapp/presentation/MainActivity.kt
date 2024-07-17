@@ -33,8 +33,10 @@ fun CurrencyConverterApp() {
                 composable("currencyExchange") {
                     CurrencyExchangeScreen(navController)
                 }
-                composable("convertedResult") {
-                    ConvertedResultScreen()
+                composable("convertedResult/{convertedAmount}") { backStackEntry ->
+                    val convertedAmount =
+                        backStackEntry.arguments?.getString("convertedAmount") ?: "0.0"
+                    ConvertedResultScreen(convertedAmount)
                 }
             }
         }
