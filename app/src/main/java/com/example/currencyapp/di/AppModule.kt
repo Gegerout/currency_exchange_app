@@ -17,7 +17,7 @@ import javax.inject.Singleton
 object AppModule {
     @Provides
     @Singleton
-    fun providePaprikaApi(): ExchangeCurrencyApi {
+    fun provideExchangeCurrencyApi(): ExchangeCurrencyApi {
         return Retrofit.Builder().baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create()).build()
             .create(ExchangeCurrencyApi::class.java)
@@ -25,7 +25,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCoinRepository(api: ExchangeCurrencyApi) : CurrencyRepository {
+    fun provideCurrencyRepository(api: ExchangeCurrencyApi) : CurrencyRepository {
         return CurrencyRepositoryImpl(api)
     }
 }

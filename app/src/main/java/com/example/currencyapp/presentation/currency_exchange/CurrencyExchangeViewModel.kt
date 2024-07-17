@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CurrencyExchangeViewModel @Inject constructor(
-    private val getCoinsUseCase: GetCurrenciesUseCase,
+    private val getCurrenciesUseCase: GetCurrenciesUseCase,
     savedStateHandle: SavedStateHandle
 ) :
     ViewModel() {
@@ -27,25 +27,35 @@ class CurrencyExchangeViewModel @Inject constructor(
     val state: State<CurrencyExchangeState> = _state
 
     init {
-        savedStateHandle.get<String>(BASE_CURRENCY)
-            ?.let { baseCurrency -> getCurrencies(baseCurrency) }
+        savedStateHandle.get<String>(BASE_CURRENCY)?.let { baseCurrency ->
+            getCurrencies(baseCurrency)
+        }
     }
 
-    fun getCurrencies(baseCurrency: String) {
-        getCoinsUseCase(
+    fun convertCurrency(amount: Double, sourceCurrency: String, targetCurrency: String) {
+        getCurrencies(sourceCurrency, amount, targetCurrency)
+    }
+
+    private fun getCurrencies(baseCurrency: String, amount: Double = 1.0, targetCurrency: String = "") {
+        getCurrenciesUseCase(
             apiKey = API_KEY,
             currencies = CURRENCIES,
             baseCurrency = baseCurrency
         ).onEach { result ->
             when (result) {
                 is Resource.Success -> {
+                    val rates = result.data ?: Currency(0.0, 0.0, 0.0, 0.0)
+                    val targetRate = when (targetCurrency) {
+                        "USD" -> rates.USD
+                        "EUR" -> rates.EUR
+                        "GBP" -> rates.GBP
+                        "CAD" -> rates.CAD
+                        else -> 0.0
+                    }
+                    val convertedAmount = amount * targetRate
                     _state.value = CurrencyExchangeState(
-                        currencies = result.data ?: Currency(
-                            0.0,
-                            0.0,
-                            0.0,
-                            0.0
-                        )
+                        currencies = rates,
+                        convertedAmount = convertedAmount
                     )
                 }
 

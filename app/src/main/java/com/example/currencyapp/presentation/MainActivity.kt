@@ -6,7 +6,10 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.currencyapp.presentation.currency_exchange.ConvertedResultScreen
 import com.example.currencyapp.presentation.currency_exchange.CurrencyExchangeScreen
 import com.example.currencyapp.presentation.ui.theme.CurrencyAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,13 +28,15 @@ class MainActivity : ComponentActivity() {
 fun CurrencyConverterApp() {
     CurrencyAppTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
-            CurrencyExchangeScreen()
+            val navController = rememberNavController()
+            NavHost(navController = navController, startDestination = "currencyExchange") {
+                composable("currencyExchange") {
+                    CurrencyExchangeScreen(navController)
+                }
+                composable("convertedResult") {
+                    ConvertedResultScreen()
+                }
+            }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    CurrencyConverterApp()
 }
