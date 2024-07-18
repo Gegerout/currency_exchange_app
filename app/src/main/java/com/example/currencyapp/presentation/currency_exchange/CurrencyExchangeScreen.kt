@@ -58,8 +58,6 @@ fun CurrencyExchangeScreen(
             }
         )
 
-        val currentState by remember { viewModel.state }
-
         Button(
             onClick = {
                 viewModel.convertCurrency(
@@ -73,28 +71,23 @@ fun CurrencyExchangeScreen(
             Text(text = "Convert")
         }
 
-        var conversionComplete by remember { mutableStateOf(false) }
-
-        LaunchedEffect(Unit) {
-            snapshotFlow { viewModel.state.value.convertedAmount }.collect { convertedAmount ->
-                if (convertedAmount != null) {
-                    conversionComplete = true
-                }
-            }
-        }
-
-        if (conversionComplete) {
-            LaunchedEffect(Unit) {
-                navController.popBackStack("currencyExchange", true)
-                navController.navigate("convertedResult/${viewModel.state.value.convertedAmount}")
-                conversionComplete = false
-            }
-        }
+        val currentState by remember { viewModel.state }
 
         if (currentState.isLoading) {
             Text(text = "Loading...")
         } else if (currentState.error.isNotBlank()) {
             Text(text = "Error: ${currentState.error}")
+        }
+
+        val conversionComplete by viewModel.conversionComplete.collectAsState()
+
+        LaunchedEffect(conversionComplete) {
+            if(conversionComplete) {
+                navController.navigate("convertedResult/${viewModel.state.value.convertedAmount}") {
+                    popUpTo("currencyExchange") { inclusive = false }
+                }
+                viewModel.resetConversionComplete()
+            }
         }
     }
 }

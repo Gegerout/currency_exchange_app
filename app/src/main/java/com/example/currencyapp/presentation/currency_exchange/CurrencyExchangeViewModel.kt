@@ -13,6 +13,8 @@ import com.example.currencyapp.common.Resource
 import com.example.currencyapp.domain.model.Currency
 import com.example.currencyapp.domain.usecase.GetCurrenciesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -21,10 +23,12 @@ import javax.inject.Inject
 class CurrencyExchangeViewModel @Inject constructor(
     private val getCurrenciesUseCase: GetCurrenciesUseCase,
     savedStateHandle: SavedStateHandle
-) :
-    ViewModel() {
-    private val _state = mutableStateOf<CurrencyExchangeState>(CurrencyExchangeState())
+) : ViewModel() {
+    private val _state = mutableStateOf(CurrencyExchangeState())
     val state: State<CurrencyExchangeState> = _state
+
+    private val _conversionComplete = MutableStateFlow(false)
+    val conversionComplete: StateFlow<Boolean> = _conversionComplete
 
     init {
         savedStateHandle.get<String>(BASE_CURRENCY)?.let { baseCurrency ->
@@ -33,6 +37,7 @@ class CurrencyExchangeViewModel @Inject constructor(
     }
 
     fun convertCurrency(amount: Double, sourceCurrency: String, targetCurrency: String) {
+        _conversionComplete.value = false
         getCurrencies(sourceCurrency, amount, targetCurrency)
     }
 
@@ -57,11 +62,11 @@ class CurrencyExchangeViewModel @Inject constructor(
                         currencies = rates,
                         convertedAmount = convertedAmount
                     )
+                    _conversionComplete.value = true
                 }
 
                 is Resource.Error -> {
-                    _state.value =
-                        CurrencyExchangeState(error = result.message ?: BASE_ERROR_MESSAGE)
+                    _state.value = CurrencyExchangeState(error = result.message ?: BASE_ERROR_MESSAGE)
                 }
 
                 is Resource.Loading -> {
@@ -69,5 +74,10 @@ class CurrencyExchangeViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    fun resetConversionComplete() {
+        _conversionComplete.value = false
+        _state.value = CurrencyExchangeState(convertedAmount = null)
     }
 }
